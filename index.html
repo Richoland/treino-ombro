@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ombro">
+<meta name="application-name" content="Ombro">
+<meta name="description" content="Treino diário de ombro com elástico, com animações de cada exercício.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Treino de ombro</title>
+<style>
+:root{--bg:#0b0e14;--card:#151a24;--card2:#10141d;--line:#252c3b;--txt:#e8ecf3;--mut:#8a94a8;--acc:#5eead4;--band:#fbbf24;--pink:#f472b6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.45}
+body{max-width:540px;margin:0 auto;min-height:100vh}
+button,a{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:rgba(11,14,20,.92);backdrop-filter:blur(8px);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}
+header .t{flex:1;min-width:0}
+header .t small{display:block;color:var(--mut);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.dots{display:flex;gap:6px;margin-top:6px}
+.dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--acc)}
+.dots i.cur{background:#fff}
+.ibtn{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:20px}
+main{padding:6px 16px calc(160px + env(safe-area-inset-bottom))}
+.badge{min-width:48px;height:48px;padding:0 12px;border-radius:24px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font-weight:700;color:var(--band);white-space:nowrap}
+.restset{display:flex;align-items:center;gap:8px;margin-top:14px}
+.restset span{color:var(--mut);font-size:14px;margin-right:2px}
+.restset button{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;color:var(--mut)}
+.restset button.on{border-color:var(--band);color:var(--band);background:rgba(251,191,36,.1)}
+.train{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
+.train .nums{display:flex;gap:12px;text-align:center}
+.train .nums div{flex:1;background:var(--card2);border-radius:14px;padding:10px 6px}
+.train .nums b{display:block;font-size:34px;line-height:1.1;color:var(--acc)}
+.train .nums span{font-size:13px;color:var(--mut)}
+.train .big{width:100%;min-height:68px;margin-top:14px;border-radius:18px;border:0;background:var(--acc);color:#06221e;font-size:20px;font-weight:800}
+.train .okay{margin-top:14px;min-height:68px;border-radius:18px;display:grid;place-items:center;background:rgba(94,234,212,.12);color:var(--acc);font-weight:700;font-size:18px}
+.train p{margin:10px 0 0;font-size:14px;color:var(--mut);text-align:center}
+.safe{max-width:508px;margin:0 auto 10px;font-size:12px;line-height:1.3;color:#f9a8d4;text-align:center}
+h1{font-size:26px;line-height:1.15;margin:8px 0 8px}
+.vol{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.vol span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px;color:#cfd6e4}
+.vol span.hi{border-color:transparent;background:rgba(94,234,212,.14);color:var(--acc);font-weight:600}
+.anim{background:var(--card2);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.anim svg{display:block;width:100%;height:auto;max-height:52vh}
+.anim text{font-family:inherit}
+.tempo{padding:10px 16px 14px}
+.tempo .row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mut)}
+.tempo b{color:var(--acc);font-size:16px}
+.bar{height:6px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:3px;transform-origin:left;transform:scaleX(0)}
+.chips{display:flex;gap:8px;margin:12px 0 0}
+.chips button{flex:1;min-height:52px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:16px}
+.chips button.on{background:var(--acc);color:#06221e;border-color:var(--acc)}
+.desc{margin:10px 2px 0;color:#cfd6e4}
+h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:24px 0 10px}
+ol,ul{margin:0;padding:0;list-style:none}
+ol{counter-reset:s}
+ol li{counter-increment:s;position:relative;padding:0 0 12px 44px;min-height:32px}
+ol li:before{content:counter(s);position:absolute;left:0;top:-2px;width:32px;height:32px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--acc)}
+ul li{position:relative;padding:12px 14px 12px 42px;background:var(--card);border-radius:14px;margin-bottom:8px}
+ul li:before{content:"";position:absolute;left:16px;top:20px;width:10px;height:10px;border-radius:50%;background:var(--band)}
+.sets{display:flex;gap:12px;align-items:center}
+.sets button{width:64px;height:64px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:22px;font-weight:700;color:var(--mut)}
+.sets button.done{background:var(--acc);border-color:var(--acc);color:#06221e}
+#rest{margin-top:12px;display:flex;align-items:center;gap:12px;background:rgba(251,191,36,.12);border-radius:14px;padding:10px 10px 10px 16px;color:var(--band)}
+#rest[hidden]{display:none}
+#rest span{flex:1}
+#rest b{font-size:20px;font-variant-numeric:tabular-nums}
+#rest button{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(251,191,36,.4);background:none}
+.video{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;min-height:54px;border-radius:14px;border:1px solid var(--line);text-decoration:none;color:#cfd6e4;font-weight:600}
+.video small{color:var(--mut);font-weight:400}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
+nav div{max-width:508px;margin:0 auto;display:flex;gap:12px}
+nav button{flex:1;min-height:62px;border-radius:18px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:18px}
+nav button.next{flex:1.5;background:var(--acc);border-color:var(--acc);color:#06221e}
+nav button:disabled{opacity:.35}
+button,.video{transition:transform .45s cubic-bezier(.34,1.56,.64,1),background-color .2s,border-color .2s,color .2s}
+button:active,.video:active{transform:scale(.94);transition-duration:.08s}
+@keyframes pop{0%{transform:scale(.6)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+.pop{animation:pop .5s cubic-bezier(.3,.7,.4,1)}
+.train .nums b.pop{display:block}
+@keyframes enter{from{opacity:0;transform:translateX(var(--dx,22px))}to{opacity:1;transform:none}}
+main.enter{animation:enter .45s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
+#sheet .in{animation:up .45s cubic-bezier(.2,.9,.3,1)}
+.cf{position:fixed;z-index:20;width:10px;height:10px;border-radius:3px;pointer-events:none}
+#sheet{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+#sheet[hidden]{display:none}
+#sheet .in{width:100%;max-width:540px;max-height:88vh;overflow:auto;background:var(--card);border-radius:24px 24px 0 0;padding:22px 18px calc(18px + env(safe-area-inset-bottom))}
+#sheet h3{margin:0 0 6px;font-size:22px}
+#sheet p{margin:6px 0;color:#cfd6e4}
+#sheet .warn{background:rgba(244,114,182,.12);color:#f9a8d4;border-radius:14px;padding:12px 14px;margin-top:6px}
+#sheet .btns{display:flex;gap:12px;margin-top:18px}
+#sheet .btns button{flex:1;min-height:56px;border-radius:16px;border:1px solid var(--line);background:none;font-weight:700}
+#sheet .btns button.pri{background:var(--acc);border-color:var(--acc);color:#06221e}
+</style>
+</head>
+<body>
+<header>
+  <div class="t"><small id="step"></small><div class="dots" id="dots"></div></div>
+  <div class="badge" id="badge" aria-label="Dias seguidos"></div>
+  <button class="ibtn" onclick="openSheet(false)" aria-label="Regras da ficha">i</button>
+</header>
+<main id="main"></main>
+<nav><p class="safe">Dor, travamento ou perda de força? Pare e procure um ortopedista ou fisioterapeuta.</p><div>
+  <button id="prev" onclick="go(-1)">‹ Anterior</button>
+  <button id="next" class="next" onclick="go(1)">Próximo ›</button>
+</div></nav>
+<div id="sheet" hidden onclick="if(event.target===this)closeSheet()"><div class="in" id="sheetIn"></div></div>
+
+<script>
+/* ============ desenho ============ */
+const BODY='#aab3c5',TORSO='#46506a',FAR='#67718a',ACC='#5eead4',BAND='#fbbf24',PINK='#f472b6',DIM='#2a3244',TXT='#8a94a8',HAND='#e6fffb',DARK='#10141d',WOOD='#3b4560';
+const PI=Math.PI,rad=d=>d*PI/180,lerp=(a,b,p)=>a+(b-a)*p,lp=(a,b,p)=>[lerp(a[0],b[0],p),lerp(a[1],b[1],p)];
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const f=n=>n.toFixed(1);
+const ln=(x1,y1,x2,y2,c,w,ex='')=>`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${c}" stroke-width="${f(w)}" stroke-linecap="round" ${ex}/>`;
+const pl=(pts,c,w,ex='')=>`<polyline points="${pts.map(p=>f(p[0])+','+f(p[1])).join(' ')}" fill="none" stroke="${c}" stroke-width="${f(w)}" stroke-linecap="round" stroke-linejoin="round" ${ex}/>`;
+const ci=(x,y,r,c,ex='')=>`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${c}" ${ex}/>`;
+const tx=(x,y,s,c=TXT,size=10,anchor='middle',ex='')=>`<text x="${x}" y="${y}" fill="${c}" font-size="${size}" text-anchor="${anchor}" font-weight="600" ${ex}>${s}</text>`;
+const FLOOR=ln(16,251,284,251,DIM,3);
+/* mola amortecida: cada valor nomeado persegue o alvo com rigidez w e amortecimento z */
+let SPR={},DT=1/60;
+function sp(name,target,w=9,z=.65,init){
+  let s=SPR[name];if(!s)s=SPR[name]={x:init===undefined?target:init,v:0};
+  const k=w*w,c=2*z*w;
+  for(let r=DT;r>1e-6;){const h=Math.min(r,1/240);s.v+=(k*(target-s.x)-c*s.v)*h;s.x+=s.v*h;r-=h;}
+  return s.x;
+}
+const cl=x=>x<0?0:x>1?1:x;
+/* elástico: curva que atrasa um pouco em relação às mãos e cede quando está frouxo */
+function band(a,b,st,w=5,key='bw',amp=60){
+  const l=sp(key,st,16,.5),dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,o=(st-l)*amp;
+  const mx=(a[0]+b[0])/2-dy/L*o,my=(a[1]+b[1])/2+dx/L*o+(1-cl(st))*amp/20;
+  return `<path d="M${f(a[0])} ${f(a[1])} Q${f(mx)} ${f(my)} ${f(b[0])} ${f(b[1])}" fill="none" stroke="${BAND}" stroke-width="${f(lerp(w,w*.55,cl(st)))}" stroke-linecap="round"/>`;
+}
+const box=(x,y,label,inner)=>`<g transform="translate(${x} ${y})"><rect width="96" height="84" rx="12" fill="#0b0e14" stroke="${DIM}" stroke-width="1.5"/>${tx(48,14,label,TXT,8.5)}${inner}</g>`;
+
+/* ciclo 2s ida, pausa, 2s volta, pausa */
+function cyc(t,a='Ida',b='Volta'){
+  const x=t%5,D=1.7;let g,label,bar;
+  if(x<2){g=ease(Math.min(1,x/D));label=a+' · 2s';bar=x/2;}
+  else if(x<2.5){g=1;label='Segura';bar=1;}
+  else if(x<4.5){g=1-ease(Math.min(1,(x-2.5)/D));label=b+' · 2s';bar=1-(x-2.5)/2;}
+  else{g=0;label='Pausa';bar=0;}
+  /* p: articulação principal segue o alvo por mola; q: ponta (mão) segue p com um leve atraso */
+  const p=sp('p',g,9,.65),q=sp('q',p,10,.75);
+  return{p,q,pc:cl(p),qc:cl(q),label,bar};
+}
+
+function frontBody(face=true){
+  return ln(138,166,134,244,BODY,13)+ln(162,166,166,244,BODY,13)
+   +`<path d="M120 80 Q150 72 180 80 L172 168 Q150 176 128 168 Z" fill="${TORSO}" stroke="${TORSO}" stroke-width="8" stroke-linejoin="round"/>`
+   +ln(150,62,150,76,BODY,9)+ci(150,46,19,BODY)
+   +(face?ci(143,44,2.2,DARK)+ci(157,44,2.2,DARK)+`<path d="M143 53 Q150 58 157 53" stroke="${DARK}" stroke-width="2" fill="none" stroke-linecap="round"/>`:'');
+}
+function sideBody(x,split){
+  const legs=split
+    ? ln(x-4,158,x-26,244,FAR,13)+ln(x-26,246,x-14,246,FAR,8)+ln(x-4,158,x+16,244,BODY,13)+ln(x+16,246,x+28,246,BODY,8)
+    : ln(x-4,158,x-8,244,FAR,13)+ln(x-4,158,x+4,244,BODY,13)+ln(x+4,246,x+16,246,BODY,8);
+  return legs+ln(x,80,x-4,158,TORSO,26)+ln(x+1,62,x,74,BODY,9)+ci(x+3,46,18,BODY)+ci(x+21,49,3.5,BODY)+ci(x+13,43,2.2,DARK);
+}
+const pole=x=>ln(x,24,x,249,WOOD,7);
+
+/* vista de cima para as rotações */
+function topRot(x0,y0,cx,th,anchor,st){
+  const cy=40,e=[cx+22,cy+3],h=[e[0]+24*Math.sin(th),e[1]+24*Math.cos(th)];
+  return box(x0,y0,'visto de cima',
+    `<ellipse cx="${cx}" cy="${cy}" rx="24" ry="9" fill="${TORSO}"/>`+ci(cx,cy+9,2.5,BODY)+ci(cx,cy,9,BODY)
+    +band(anchor,h,st,3,'bi',20)+ci(anchor[0],anchor[1],3,BAND)+ln(e[0],e[1],h[0],h[1],ACC,5)+ci(e[0],e[1],3.4,ACC)+ci(h[0],h[1],3.6,HAND));
+}
+
+/* 1 e 2: rotações (de frente, antebraço em perspectiva) */
+function rotation(external){
+  return t=>{
+    const c=cyc(t,external?'Gira pra fora':'Puxa pra barriga','Volta devagar');
+    const th=rad(external?lerp(-50,40,c.p):lerp(40,-50,c.p));
+    const S=[182,86],E=[188,134],H=[E[0]+46*Math.sin(th),E[1]+46*Math.cos(th)*.38];
+    const ax=external?30:270,A=[external?36:264,140];
+    const arcEnd='217.6 147.4';
+    const svg=FLOOR+pole(ax)+ci(A[0],A[1],5,BAND)
+      +(external?tx(46,128,'âncora',BAND,9,'start'):tx(256,128,'âncora',BAND,9,'end'))
+      +frontBody()+pl([[118,86],[110,130],[114,172]],BODY,11)
+      +(external?`<rect x="173" y="116" width="12" height="24" rx="6" fill="${PINK}"/>`+tx(214,114,'toalha',PINK,9):'')
+      +`<path d="M152.8 145.2 A46 17.5 0 0 0 ${arcEnd}" fill="none" stroke="#5a6580" stroke-width="2" stroke-dasharray="3 6" stroke-linecap="round"/>`
+      +band(A,H,c.p)
+      +pl([S,E,H],ACC,11)+ci(E[0],E[1],4,'#2bb5a3')+ci(H[0],H[1],6.5+2*Math.cos(th),HAND)
+      +(external?topRot(196,166,44,th,[7,52],c.p):topRot(8,166,34,th,[90,52],c.p));
+    return{svg,label:c.label,bar:c.bar};
+  };
+}
+
+/* 3: pull-apart */
+function pullApart(t){
+  const c=cyc(t,'Abre','Volta devagar'),ph=rad(lerp(8,80,c.p)),s=Math.sin(ph),co=Math.cos(ph);
+  const ph2=rad(lerp(8,80,c.q)),s2=Math.sin(ph2),co2=Math.cos(ph2);
+  const ER=[182+36*s,86+36*co*.5+3],EL=[118-36*s,ER[1]];
+  const HR=[ER[0]+36*s2,ER[1]-3+36*co2*.5],HL=[EL[0]-36*s2,HR[1]];
+  const r=6.5+2.5*co2;
+  const cx=48,cy=36,hr=[cx+16+26*s,cy+2+26*co],hl=[cx-16-26*s,hr[1]];
+  const inset=box(8,166,'visto de cima',
+    `<ellipse cx="${cx}" cy="${cy}" rx="19" ry="8" fill="${TORSO}"/>`+ci(cx,cy+8,2.5,BODY)+ci(cx,cy,8,BODY)
+    +band(hl,hr,c.p,3,'bi',20)+ln(cx+16,cy+2,hr[0],hr[1],ACC,4.5)+ln(cx-16,cy+2,hl[0],hl[1],ACC,4.5)+ci(hr[0],hr[1],3.4,HAND)+ci(hl[0],hl[1],3.4,HAND));
+  const svg=FLOOR+frontBody()+band(HL,HR,c.p)
+    +pl([[182,86],ER,HR],ACC,11)+pl([[118,86],EL,HL],ACC,11)+ci(HR[0],HR[1],r,HAND)+ci(HL[0],HL[1],r,HAND)+inset;
+  return{svg,label:c.label,bar:c.bar};
+}
+
+/* 4: face pull (de lado + mini de frente) */
+function facePull(t){
+  const c=cyc(t,'Puxa','Volta devagar'),p=c.p,A=[274,60];
+  const q=c.q,S=[105,88],E=lp([146,82],[90,76],p),H=lp([186,66],[110,52],q);
+  const E2=[E[0]+8,E[1]-3],H2=[H[0]+6,H[1]-3];
+  let arms='';
+  for(const s of[-1,1]){
+    const sh=[48+s*15,41],e=lp([48+s*11,51],[48+s*31,38],p),h=lp([48+s*4,41],[48+s*21,24],q);
+    arms+=pl([sh,e,h],ACC,4.5)+ci(h[0],h[1],lerp(4.6,3.4,q),HAND);
+  }
+  const inset=box(196,166,'de frente',
+    `<path d="M35 41 L61 41 L58 74 L38 74 Z" fill="${TORSO}" stroke="${TORSO}" stroke-width="5" stroke-linejoin="round"/>`+ci(48,27,8,BODY)+arms);
+  const svg=FLOOR+pole(280)+ci(A[0],A[1],5,BAND)+tx(266,46,'âncora',BAND,9,'end')
+    +pl([[109,86],E2,H2],FAR,10)+ln(A[0],A[1],H2[0],H2[1],'#b98a14',lerp(3.5,2.2,p))
+    +sideBody(105,true)+band(A,H,p,4.5)+pl([S,E,H],ACC,11)+ci(E[0],E[1],4,'#2bb5a3')+ci(H[0],H[1],7,HAND)+inset;
+  return{svg,label:c.label,bar:c.bar};
+}
+
+/* 5: Y-T-W (visto de cima + mini de lado) */
+function ytw(letter){
+  return t=>{
+    const c=cyc(t,'Sobe','Desce'),p=c.p;
+    let arms='',sh='';
+    for(const s of[-1,1]){
+      const S=[150+s*24,97];let E,H;
+      if(letter==='Y'){H=[S[0]+s*44.8,97-63.9];E=[(S[0]+H[0])/2,(S[1]+H[1])/2];}
+      else if(letter==='T'){H=[S[0]+s*78,97];E=[(S[0]+H[0])/2,97];}
+      else{E=[S[0]+s*(34-4*p),113+3*p];H=[E[0]+s*12,E[1]-38];}
+      const pts=[S,E,H],lift=[1*c.pc,5*c.pc,9*c.qc];
+      sh+=pl(pts.map((u,i)=>[u[0],u[1]+lift[i]]),'#000',11,`opacity="${f(.45*c.pc)}"`);
+      arms+=pl(pts,ACC,11+1.5*c.pc)+ci(H[0],H[1],6.5+c.qc,HAND);
+    }
+    let scap='';
+    for(const s of[-1,1])scap+=ln(150+s*(17-6*p),104,150+s*(14-6*p),128,BODY,4,'opacity=".75"');
+    const inset=box(8,166,'de lado',
+      ln(8,66,88,66,DIM,2)+`<rect x="64" y="60" width="12" height="5" rx="2" fill="${PINK}"/>`
+      +ln(13,59,58,59,TORSO,9)+ci(70,55,7,BODY)+ln(58,58,91,61-12*c.q,ACC,4.5)+tx(48,78,'só poucos cm',TXT,8));
+    const svg=`<rect x="106" y="22" width="88" height="232" rx="14" fill="#171d2b"/>`
+      +tx(246,244,letter,'#232b3d',72)
+      +`<rect x="132" y="33" width="36" height="22" rx="7" fill="${PINK}" opacity=".85"/>`
+      +ln(141,178,139,248,BODY,13)+ln(159,178,161,248,BODY,13)+sh
+      +`<path d="M126 94 Q150 86 174 94 L168 178 Q150 184 132 178 Z" fill="${TORSO}" stroke="${TORSO}" stroke-width="8" stroke-linejoin="round"/>`
+      +scap+ln(150,76,150,88,BODY,9)+ci(150,62,17,BODY)+arms+inset;
+    return{svg,label:c.label,bar:c.bar};
+  };
+}
+
+/* aquecimento */
+function circles(t){
+  const x=t%12,fwd=x<6,n=(x%6)/2,S=[150,88];
+  const a=sp('a',PI+2*PI*(fwd?n:3-n),10,.8),a2=sp('a2',a,14,.8);
+  const arm=(ang,col,w)=>ln(S[0],S[1],S[0]+72*Math.sin(ang),S[1]-72*Math.cos(ang),col,w);
+  const svg=FLOOR+`<circle cx="150" cy="88" r="72" fill="none" stroke="#3a4359" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/>`
+    +tx(250,60,fwd?'↻':'↺',ACC,30)+arm(a2,FAR,10)+sideBody(150,false)+arm(a,ACC,11)
+    +ci(S[0]+72*Math.sin(a),S[1]-72*Math.cos(a),7,HAND);
+  return{svg,label:fwd?'Pra frente':'Pra trás',bar:n%1};
+}
+function pendulum(t){
+  const a=2*PI*t/2.4,m=sp('amp',1,3,.9,0),S=[172,116],H=[172+24*m*Math.cos(a),190+6*m*Math.sin(a)];
+  const svg=FLOOR+ln(212,142,286,142,WOOD,7)+ln(272,142,272,249,WOOD,6)
+    +pl([[112,152],[117,200],[106,244]],FAR,13)+pl([[112,152],[125,200],[120,244]],BODY,13)+ln(120,246,132,246,BODY,8)
+    +pl([[176,112],[200,128],[224,136]],FAR,10)
+    +ln(112,150,174,112,TORSO,26)+ln(180,108,190,104,BODY,9)+ci(200,100,17,BODY)+ci(213,113,3.5,BODY)+ci(209,102,2.2,DARK)
+    +`<ellipse cx="172" cy="190" rx="24" ry="6" fill="none" stroke="#3a4359" stroke-width="2" stroke-dasharray="3 6"/>`
+    +ln(S[0],S[1],H[0],H[1],ACC,10)+ci(H[0],H[1],7,HAND)+tx(246,132,'apoio',TXT,9);
+  return{svg,label:'Braço solto, balanço leve',bar:(t%2.4)/2.4};
+}
+function scap(t){
+  const c=cyc(t,'Aperta','Solta'),p=c.p;
+  let s2='',arms='';
+  for(const s of[-1,1]){
+    const cx=150+s*(23-10*p);
+    s2+=`<path d="M${f(cx-s*6)} 94 L${f(cx+s*10)} 98 L${f(cx-s*3)} 126 Z" fill="${BODY}" stroke="${BODY}" stroke-width="4" stroke-linejoin="round" opacity=".9"/>`;
+    arms+=pl([[150+s*(32-2*p),86],[150+s*(40-4*p),130],[150+s*(36-2*c.q),172]],BODY,11);
+    s2+=tx(150+s*64,118,s<0?'→':'←',ACC,22,'middle',`opacity="${f(.25+.75*c.pc)}"`);
+  }
+  const svg=FLOOR+frontBody(false)+arms+ln(150,84,150,162,'#5a6580',2,'stroke-dasharray="2 6"')+s2;
+  return{svg,label:c.label,bar:c.bar};
+}
+
+/* ============ conteúdo ============ */
+const STD=['2 a 3 séries','12 a 15 repetições','descanso 45 a 60s'];
+const EX=[
+ {id:'aq',title:'Aquecimento',vol:['3 min','10 de cada movimento'],sets:0,
+  variants:[
+   {name:'Círculos',view:'Visto de lado',anim:circles,desc:'Braços esticados, círculos grandes e soltos: 10 pra frente e 10 pra trás.'},
+   {name:'Pendular',view:'Visto de lado',anim:pendulum,desc:'Tronco inclinado, uma mão apoiada, o outro braço solto balançando. 10 de cada lado.'},
+   {name:'Escápulas',view:'Visto de costas',anim:scap,desc:'Aperta uma escápula contra a outra sem subir o ombro. 10 vezes.'}],
+  steps:['10 círculos de braço pra frente e 10 pra trás.','10 pendulares de cada lado, com o tronco inclinado e o braço solto.','10 apertos de escápula sem subir o ombro.'],
+  tips:['Estalo sem dor é ok.','Não força o final do movimento.']},
+ {id:'re',title:'Rotação externa',vol:[...STD,'os dois lados'],sets:3,view:'Visto de frente',anim:rotation(true),
+  steps:['Prende o elástico do lado oposto ao braço que trabalha, na altura do cotovelo.','Cotovelo a 90° colado no tronco, com uma toalha enrolada no meio.','Gira o antebraço pra fora (2s).','Volta devagar (2s). Depois troca de lado.'],
+  tips:['Se a toalha cair, o cotovelo abriu.','Só o antebraço gira.','Ombro longe da orelha.'],
+  video:'https://www.youtube.com/watch?v=_gEWleAgieA'},
+ {id:'ri',title:'Rotação interna',vol:[...STD,'os dois lados'],sets:3,view:'Visto de frente',anim:rotation(false),
+  steps:['Prende o elástico do mesmo lado do braço que trabalha.','Cotovelo a 90° colado no tronco.','Puxa o antebraço em direção à barriga (2s).','Controla a volta (2s). Depois troca de lado.'],
+  tips:['Cotovelo colado o tempo todo.','Volta lenta.','Se o tronco girar ou o ombro subir, alivia a tensão.'],
+  video:'https://www.youtube.com/watch?v=2N6XWsV4pIU'},
+ {id:'pa',title:'Band pull-apart',vol:STD,sets:3,view:'Visto de frente',anim:pullApart,
+  steps:['Segura o elástico à frente, na altura dos ombros, braços quase esticados.','Abre os braços até o elástico chegar no peito (2s).','Volta devagar (2s).'],
+  tips:['Ombros baixos.','Sente atrás do ombro e entre as escápulas, não no pescoço.','Não solta o elástico na volta.'],
+  video:'https://www.youtube.com/watch?v=oEeT6oTrE3U'},
+ {id:'fp',title:'Face pull',vol:STD,sets:3,view:'Visto de lado',anim:facePull,
+  steps:['Prende o elástico na altura do rosto e dá um passo pra trás.','Puxa com os cotovelos altos, mãos indo pra perto das orelhas (2s).','Abre as mãos no final.','Volta devagar (2s).'],
+  tips:['Cotovelos altos: se caírem, virou remada.','Tronco firme.','Sem jogar a cabeça pra frente.'],
+  video:'https://www.youtube.com/watch?v=GjfwIHrfgSw'},
+ {id:'ytw',title:'Y-T-W',vol:['2 séries','8 a 10 de cada letra','de bruços, sem peso'],sets:2,
+  variants:[
+   {name:'Y',view:'Visto de cima',anim:ytw('Y'),desc:'Braços em diagonal acima da cabeça, polegares pra cima.'},
+   {name:'T',view:'Visto de cima',anim:ytw('T'),desc:'Braços abertos pro lado.'},
+   {name:'W',view:'Visto de cima',anim:ytw('W'),desc:'Cotovelos dobrados, escápulas juntas.'}],
+  steps:['Deita de bruços com a testa numa toalha.','Levanta os braços poucos centímetros do chão (2s).','Desce devagar (2s).','Faz 8 a 10 em Y, depois em T, depois em W.'],
+  tips:['O movimento vem das escápulas.','Não levanta o peito nem arqueia a lombar.','Pescoço relaxado.'],
+  video:'https://www.youtube.com/watch?v=sOJndB-OznA'}
+];
+
+/* ============ app ============ */
+const $=s=>document.querySelector(s),KEY='treino-ombro-v1',today=new Date().toDateString();
+let st={date:today,idx:0,done:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.date===today)st=s;}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+let vi=0,anim=null,t0=0,lastLabel='',restEnd=0,restInt=null,sheetFin=false;
+let cfg={rest:45},log=[],popSet=0,justTrained=false,lastNow=0;
+function celebrate(x,y){
+  const cols=[ACC,BAND,PINK,'#ffffff'];
+  for(let i=0;i<28;i++){
+    const e=document.createElement('i');e.className='cf';
+    e.style.cssText='left:'+x+'px;top:'+y+'px;background:'+cols[i%4];
+    if(!e.animate)return;
+    document.body.appendChild(e);
+    const a=-PI/2+(Math.random()-.5)*2.6,d=80+Math.random()*150,dx=Math.cos(a)*d,dy=Math.sin(a)*d;
+    e.animate([
+      {transform:'translate(-50%,-50%) scale(.3)',opacity:1},
+      {transform:`translate(${dx}px,${dy}px) rotate(${Math.random()*360}deg) scale(1)`,opacity:1,offset:.45},
+      {transform:`translate(${dx*1.15}px,${dy+130}px) rotate(${Math.random()*720}deg) scale(.7)`,opacity:0}
+    ],{duration:1000+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>e.remove();
+  }
+}
+try{const c=JSON.parse(localStorage.getItem(KEY+'-cfg'));if(c&&c.rest>=45&&c.rest<=60)cfg=c;}catch(e){}
+try{const l=JSON.parse(localStorage.getItem(KEY+'-log'));if(Array.isArray(l))log=l;}catch(e){}
+const dk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function stats(){
+  const set=new Set(log),d=new Date(),didToday=set.has(dk(d));
+  if(!didToday)d.setDate(d.getDate()-1);
+  let streak=0;
+  while(set.has(dk(d))){streak++;d.setDate(d.getDate()-1);}
+  return{didToday,streak,total:set.size};
+}
+function trainCard(){
+  const s=stats();
+  return `<div class="train"><div class="nums">
+    <div><b class="${justTrained?'pop':''}">${s.streak}</b><span>${s.streak===1?'dia seguido':'dias seguidos'}</span></div>
+    <div><b class="${justTrained?'pop':''}">${s.total}</b><span>${s.total===1?'treino no total':'treinos no total'}</span></div></div>`
+    +(s.didToday?'<div class="okay'+(justTrained?' pop':'')+'">✓ Treino de hoje marcado</div><p>Volta amanhã pra manter a sequência.</p>'
+      :'<button class="big" onclick="trained(this)">Treinei hoje</button>'+(s.streak?'<p>Marca hoje pra não quebrar a sequência.</p>':''))
+    +'</div>';
+}
+function trained(btn){
+  const k=dk(new Date()),r=btn&&btn.getBoundingClientRect();
+  if(!log.includes(k)){log.push(k);try{localStorage.setItem(KEY+'-log',JSON.stringify(log));}catch(e){}}
+  if(navigator.vibrate)navigator.vibrate(80);
+  justTrained=true;
+  const y=scrollY;render();scrollTo(0,y);
+  if(!$('#sheet').hidden)openSheet(sheetFin);
+  justTrained=false;
+  if(r)celebrate(r.left+r.width/2,r.top+r.height/2);
+}
+function setRest(s){
+  if(restEnd)restEnd+=(s-cfg.rest)*1000;
+  cfg.rest=s;try{localStorage.setItem(KEY+'-cfg',JSON.stringify(cfg));}catch(e){}
+  const y=scrollY;render();scrollTo(0,y);
+}
+
+function render(){
+  const ex=EX[st.idx],v=ex.variants?ex.variants[vi]:ex;
+  if(anim!==v.anim){anim=v.anim;t0=performance.now();SPR={};}
+  lastLabel='';
+  $('#step').textContent=(st.idx?'Exercício '+st.idx+' de '+(EX.length-1):'Antes de começar');
+  $('#dots').innerHTML=EX.map((e,i)=>`<i class="${i<st.idx?'on':i===st.idx?'cur':''}"></i>`).join('');
+  const n=st.done[ex.id]||0,sx=stats();
+  $('#badge').textContent='🔥 '+sx.streak;
+  $('#main').innerHTML=
+    `<h1>${st.idx?st.idx+'. ':''}${ex.title}</h1>
+     <div class="vol">${ex.vol.map((x,i)=>`<span class="${i<2?'hi':''}">${x}</span>`).join('')}</div>
+     <div class="anim"><svg id="svg" viewBox="0 0 300 260" role="img" aria-label="Animação do movimento"></svg>
+       <div class="tempo"><div class="row"><span>${v.view}</span><b id="lab"></b></div><div class="bar"><i id="bar"></i></div></div></div>`
+    +(ex.variants?`<div class="chips">${ex.variants.map((x,i)=>`<button class="${i===vi?'on':''}" onclick="setVar(${i})">${x.name}</button>`).join('')}</div><p class="desc">${v.desc}</p>`:'')
+    +(ex.sets?`<h2>Séries feitas</h2><div class="sets">${Array.from({length:ex.sets},(_,i)=>`<button class="${i<n?'done':''}${i+1===popSet?' pop':''}" onclick="setDone(${i+1})" aria-label="Série ${i+1}">${i<n?'✓':i+1}</button>`).join('')}</div>
+       <div id="rest" hidden><span id="restTxt"></span><button onclick="stopRest()">Pular</button></div>
+       <div class="restset"><span>Descanso</span>${[45,50,55,60].map(s=>`<button class="${s===cfg.rest?'on':''}" onclick="setRest(${s})">${s}s</button>`).join('')}</div>`:'')
+    +`<h2>Passo a passo</h2><ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+     <h2>Dicas</h2><ul>${ex.tips.map(s=>`<li>${s}</li>`).join('')}</ul>`
+    +(ex.video?`<a class="video" href="${ex.video}" target="_blank" rel="noopener">▶ Ver vídeo <small>(abre o YouTube)</small></a>`:'')
+    +(st.idx===EX.length-1?trainCard():'');
+  $('#prev').disabled=st.idx===0;
+  $('#next').textContent=st.idx===EX.length-1?'Concluir ✓':'Próximo ›';
+  popSet=0;
+  tick();
+}
+function setVar(i){const y=scrollY;vi=i;render();scrollTo(0,y);}
+function go(d){
+  const i=st.idx+d;
+  if(i>=EX.length){openSheet(true);return;}
+  if(i<0)return;
+  st.idx=i;vi=0;save();render();scrollTo(0,0);
+  const m=$('#main');m.style.setProperty('--dx',(d>0?22:-22)+'px');m.classList.remove('enter');void m.offsetWidth;m.classList.add('enter');
+}
+function setDone(i){
+  const ex=EX[st.idx],cur=st.done[ex.id]||0,n=cur===i?i-1:i,y=scrollY;
+  st.done[ex.id]=n;save();
+  if(n>cur)popSet=n;
+  if(n>cur&&n<ex.sets)startRest();else stopRest();
+  render();scrollTo(0,y);
+}
+function startRest(){restEnd=Date.now()+cfg.rest*1000;clearInterval(restInt);restInt=setInterval(tick,250);}
+function stopRest(){restEnd=0;clearInterval(restInt);restInt=null;const el=$('#rest');if(el)el.hidden=true;}
+function tick(){
+  const el=$('#rest');if(!restEnd)return;
+  const s=Math.ceil((restEnd-Date.now())/1000);
+  if(s<=0){stopRest();if(navigator.vibrate)navigator.vibrate([200,100,200]);return;}
+  if(el){el.hidden=false;$('#restTxt').innerHTML='Descanso <b>'+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'</b>';}
+}
+function openSheet(fin){
+  sheetFin=fin;
+  $('#sheetIn').innerHTML=
+    `<h3>${fin?'Treino concluído 💪':'Ficha 1: ombro com elástico'}</h3>
+     <p>${fin?'Boa, Ricardo. Amanhã tem de novo.':'Todo dia, 15 a 20 min, com elástico leve.'}</p>
+     ${trainCard()}
+     <h2>Regra geral</h2><p>2 a 3 séries de 12 a 15, devagar: 2s na ida, 2s na volta. Descanso de 45 a 60s. Nos unilaterais, faz os dois lados.</p>
+     <p>Estalo sem dor é ok. Não força o final do movimento.</p>
+     <h2>Progressão</h2><p>Quando 3 × 15 ficar fácil com a forma limpa, passa pra um elástico um pouco mais firme.</p>
+     <h2>Segurança</h2><p class="warn">Se aparecer dor, travamento ou perda de força: para e procura um ortopedista ou fisioterapeuta.</p>
+     <div class="btns">${fin?'<button onclick="restart()">Recomeçar</button>':''}<button class="pri" onclick="closeSheet()">Fechar</button></div>`;
+  $('#sheet').hidden=false;
+}
+function closeSheet(){$('#sheet').hidden=true;}
+function restart(){st={date:today,idx:0,done:{}};vi=0;save();stopRest();closeSheet();render();scrollTo(0,0);}
+
+function frame(now){
+  const svg=$('#svg');
+  DT=Math.min(.05,Math.max(0,(now-lastNow)/1000));lastNow=now;
+  if(svg&&anim){
+    const r=anim(Math.max(0,(now-t0)/1000));
+    svg.innerHTML=r.svg;
+    if(r.label!==lastLabel){$('#lab').textContent=lastLabel=r.label;}
+    $('#bar').style.transform='scaleX('+r.bar.toFixed(3)+')';
+  }
+  requestAnimationFrame(frame);
+}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1);});
+render();requestAnimationFrame(frame);
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
