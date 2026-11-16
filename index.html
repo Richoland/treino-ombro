@@ -48,7 +48,7 @@ h1{font-size:26px;line-height:1.15;margin:8px 0 8px}
 .vol span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px;color:#cfd6e4}
 .vol span.hi{border-color:transparent;background:rgba(94,234,212,.14);color:var(--acc);font-weight:600}
 .anim{background:var(--card2);border:1px solid var(--line);border-radius:22px;overflow:hidden}
-.anim svg{display:block;width:100%;height:auto;max-height:52vh}
+.anim svg{display:block;width:100%;height:auto;max-height:30vh}
 .anim text{font-family:inherit}
 .tempo{padding:10px 16px 14px}
 .tempo .row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mut)}
@@ -103,6 +103,24 @@ button:active,.video:active{transform:scale(.94);transition-duration:.08s}
 main.enter{animation:enter .45s cubic-bezier(.2,.9,.3,1)}
 @keyframes up{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
 #sheet .in{animation:up .45s cubic-bezier(.2,.9,.3,1)}
+/* layout compacto: séries e o botão Explicação cabem sem rolar em 390x844 */
+header{padding-bottom:8px}
+.ibtn{width:42px;height:42px;font-size:18px}
+.badge{min-width:42px;height:42px}
+main{padding-top:2px}
+h1{font-size:22px;margin:6px 0 4px}
+.volline{margin:0 0 8px}
+.tempo{padding:6px 14px 10px}
+.bar{margin-top:6px}
+.chips{margin-top:8px}
+.chips button{min-height:46px}
+.desc{margin:6px 2px 0;font-size:14.5px;line-height:1.35}
+h2{margin:16px 0 8px}
+.sets button{width:56px;height:56px;font-size:20px}
+.expbtn{margin-top:14px;min-height:54px}
+.safe{margin-bottom:8px}
+nav{padding-top:8px}
+nav button{min-height:56px}
 .cf{position:fixed;z-index:20;width:10px;height:10px;border-radius:3px;pointer-events:none}
 #sheet{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
 #sheet[hidden]{display:none}
@@ -157,11 +175,11 @@ function band(a,b,st,w=5,key='bw',amp=60){
 const box=(x,y,label,inner)=>`<g transform="translate(${x} ${y})"><rect width="96" height="84" rx="12" fill="#0b0e14" stroke="${DIM}" stroke-width="1.5"/>${tx(48,14,label,TXT,8.5)}${inner}</g>`;
 
 /* ciclo 2s ida, pausa, 2s volta, pausa */
-function cyc(t,a='Ida',b='Volta'){
-  const x=t%5,D=1.7;let g,label,bar;
+function cyc(t,a='Ida',b='Volta',hold=.5){
+  const x=t%(4.5+hold),D=1.7;let g,label,bar;
   if(x<2){g=ease(Math.min(1,x/D));label=a+' · 2s';bar=x/2;}
-  else if(x<2.5){g=1;label='Segura';bar=1;}
-  else if(x<4.5){g=1-ease(Math.min(1,(x-2.5)/D));label=b+' · 2s';bar=1-(x-2.5)/2;}
+  else if(x<2+hold){g=1;label=hold>=1?'Segura '+hold+'s':'Segura';bar=1;}
+  else if(x<4+hold){g=1-ease(Math.min(1,(x-2-hold)/D));label=b+' · 2s';bar=1-(x-2-hold)/2;}
   else{g=0;label='Pausa';bar=0;}
   /* p: articulação principal segue o alvo por mola; q: ponta (mão) segue p com um leve atraso */
   const p=sp('p',g,9,.65),q=sp('q',p,10,.75);
@@ -212,42 +230,45 @@ function rotation(external){
 
 /* 3: pull-apart */
 function pullApart(t){
-  const c=cyc(t,'Abre','Volta devagar'),ph=rad(lerp(8,80,c.p)),s=Math.sin(ph),co=Math.cos(ph);
-  const ph2=rad(lerp(8,80,c.q)),s2=Math.sin(ph2),co2=Math.cos(ph2);
-  const ER=[182+36*s,86+36*co*.5+3],EL=[118-36*s,ER[1]];
-  const HR=[ER[0]+36*s2,ER[1]-3+36*co2*.5],HL=[EL[0]-36*s2,HR[1]];
-  const r=6.5+2.5*co2;
+  /* mãos sempre na mesma linha horizontal, na altura do peito: começam à frente (em perspectiva, mão maior) e só abrem pros lados até o T */
+  const c=cyc(t,'Abre','Volta devagar'),ph=rad(lerp(0,90,c.p)),s=Math.sin(ph),co=Math.cos(ph),Y=95;
+  const HR=[182+72*s,Y],HL=[118-72*s,Y];
+  const ER=[182+36*s,(86+Y)/2+2*co],EL=[118-36*s,ER[1]];
+  const r=6.5+3.5*co;
   const cx=48,cy=36,hr=[cx+16+26*s,cy+2+26*co],hl=[cx-16-26*s,hr[1]];
+  let sc='';
+  for(const k of[-1,1])sc+=ln(cx+k*(10-5*c.pc),cy-10,cx+k*(10-5*c.pc),cy-5,BODY,2.5);
   const inset=box(8,166,'visto de cima',
-    `<ellipse cx="${cx}" cy="${cy}" rx="19" ry="8" fill="${TORSO}"/>`+ci(cx,cy+8,2.5,BODY)+ci(cx,cy,8,BODY)
+    `<ellipse cx="${cx}" cy="${cy}" rx="19" ry="8" fill="${TORSO}"/>`+sc+ci(cx,cy+8,2.5,BODY)+ci(cx,cy,8,BODY)
     +band(hl,hr,c.p,3,'bi',20)+ln(cx+16,cy+2,hr[0],hr[1],ACC,4.5)+ln(cx-16,cy+2,hl[0],hl[1],ACC,4.5)+ci(hr[0],hr[1],3.4,HAND)+ci(hl[0],hl[1],3.4,HAND));
-  const svg=FLOOR+frontBody()+band(HL,HR,c.p)
+  const svg=FLOOR+frontBody()+tx(150,17,'→ escápulas ←',ACC,9,'middle',`opacity="${f(.2+.8*c.pc)}"`)+band(HL,HR,c.p)
     +pl([[182,86],ER,HR],ACC,11)+pl([[118,86],EL,HL],ACC,11)+ci(HR[0],HR[1],r,HAND)+ci(HL[0],HL[1],r,HAND)+inset;
   return{svg,label:c.label,bar:c.bar};
 }
 
 /* 4: face pull (de lado + mini de frente) */
 function facePull(t){
-  const c=cyc(t,'Puxa','Volta devagar'),p=c.p,A=[274,60];
-  const q=c.q,S=[105,88],E=lp([146,82],[90,76],p),H=lp([186,66],[110,52],q);
+  /* âncora na altura dos olhos; no fim a mão fica ao lado da orelha (atrás da linha do rosto) e o cotovelo alto, pra fora e pra trás */
+  const c=cyc(t,'Puxa','Volta devagar'),p=c.p,A=[274,44];
+  const q=c.q,S=[105,88],E=lp([146,74],[84,80],p),H=lp([186,58],[100,45],q);
   const E2=[E[0]+8,E[1]-3],H2=[H[0]+6,H[1]-3];
   let arms='';
   for(const s of[-1,1]){
-    const sh=[48+s*15,41],e=lp([48+s*11,51],[48+s*31,38],p),h=lp([48+s*4,41],[48+s*21,24],q);
+    const sh=[48+s*15,41],e=lp([48+s*11,51],[48+s*30,37],p),h=lp([48+s*4,41],[48+s*15,26],q);
     arms+=pl([sh,e,h],ACC,4.5)+ci(h[0],h[1],lerp(4.6,3.4,q),HAND);
   }
   const inset=box(196,166,'de frente',
     `<path d="M35 41 L61 41 L58 74 L38 74 Z" fill="${TORSO}" stroke="${TORSO}" stroke-width="5" stroke-linejoin="round"/>`+ci(48,27,8,BODY)+arms);
-  const svg=FLOOR+pole(280)+ci(A[0],A[1],5,BAND)+tx(266,46,'âncora',BAND,9,'end')
-    +pl([[109,86],E2,H2],FAR,10)+ln(A[0],A[1],H2[0],H2[1],'#b98a14',lerp(3.5,2.2,p))
-    +sideBody(105,true)+band(A,H,p,4.5)+pl([S,E,H],ACC,11)+ci(E[0],E[1],4,'#2bb5a3')+ci(H[0],H[1],7,HAND)+inset;
+  const svg=FLOOR+pole(280)+ci(A[0],A[1],5,BAND)+tx(266,32,'âncora',BAND,9,'end')
+    +pl([[109,86],E2,H2],FAR,10)+ln(A[0],A[1],H2[0],H2[1],'#b98a14',lerp(3.5,2.2,c.pc))+band(A,H,p,4.5)
+    +sideBody(105,true)+pl([S,E,H],ACC,11)+ci(E[0],E[1],4,'#2bb5a3')+ci(H[0],H[1],7,HAND)+inset;
   return{svg,label:c.label,bar:c.bar};
 }
 
 /* 5: Y-T-W (visto de cima + mini de lado) */
 function ytw(letter){
   return t=>{
-    const c=cyc(t,'Sobe','Desce'),p=c.p;
+    const c=cyc(t,'Sobe','Desce',2),p=c.p;
     let arms='',sh='';
     for(const s of[-1,1]){
       const S=[150+s*24,97];let E,H;
@@ -256,15 +277,20 @@ function ytw(letter){
       else{E=[S[0]+s*(34-4*p),113+3*p];H=[E[0]+s*12,E[1]-38];}
       const pts=[S,E,H],lift=[1*c.pc,5*c.pc,9*c.qc];
       sh+=pl(pts.map((u,i)=>[u[0],u[1]+lift[i]]),'#000',11,`opacity="${f(.45*c.pc)}"`);
-      arms+=pl(pts,ACC,11+1.5*c.pc)+ci(H[0],H[1],6.5+c.qc,HAND);
+      arms+=pl(pts,ACC,11+1.5*c.pc)+ci(H[0],H[1],6.5+c.qc,HAND)+(letter==='Y'?ci(H[0],H[1],2.6,ACC):'');
     }
+    /* quadrinho de lado, um por letra */
+    let side;
+    if(letter==='Y'){const hy=61-10*c.q;side=ln(57,56,90,hy,'#0b0e14',8.5)+ln(57,56,90,hy,ACC,4.5)+ci(90,hy,3.3,HAND)+ln(90,hy,90,hy-7,HAND,2.2);}
+    else if(letter==='T'){const hy=60-8*c.q;side=ci(57,hy,5.5,ACC)+ci(57,hy,2.6,HAND);}
+    else{const e=[43,61-5*c.p],h=[61,60-8*c.q];side=ln(e[0],e[1],h[0],h[1],ACC,4.5)+ci(e[0],e[1],3,'#2bb5a3')+ci(h[0],h[1],3.3,HAND);}
     let scap='';
     for(const s of[-1,1])scap+=ln(150+s*(17-6*p),104,150+s*(14-6*p),128,BODY,4,'opacity=".75"');
     const inset=box(8,166,'de lado',
       ln(8,66,88,66,DIM,2)+`<rect x="64" y="60" width="12" height="5" rx="2" fill="${PINK}"/>`
-      +ln(13,59,58,59,TORSO,9)+ci(70,55,7,BODY)+ln(58,58,91,61-12*c.q,ACC,4.5)+tx(48,78,'só poucos cm',TXT,8));
+      +ln(13,59,58,59,TORSO,9)+ci(70,55,7,BODY)+side+tx(48,78,'só poucos cm',TXT,8));
     const svg=`<rect x="106" y="22" width="88" height="232" rx="14" fill="#171d2b"/>`
-      +tx(246,244,letter,'#232b3d',72)
+      +tx(246,244,letter,'#232b3d',72)+(letter==='Y'?tx(246,15,'polegar pra cima',ACC,9):'')
       +`<rect x="132" y="33" width="36" height="22" rx="7" fill="${PINK}" opacity=".85"/>`
       +ln(141,178,139,248,BODY,13)+ln(159,178,161,248,BODY,13)+sh
       +`<path d="M126 94 Q150 86 174 94 L168 178 Q150 184 132 178 Z" fill="${TORSO}" stroke="${TORSO}" stroke-width="8" stroke-linejoin="round"/>`
@@ -275,22 +301,26 @@ function ytw(letter){
 
 /* aquecimento */
 function circles(t){
-  /* os dois braços abertos na altura dos ombros; círculos pequenos que crescem aos poucos, 6s pra frente e 6s pra trás */
-  const x=t%12,fwd=x<6,u=(x%6)/6,n=u*5;
-  const a=sp('a',2*PI*(fwd?n:5-n),10,.8),r=sp('r',lerp(5,17,u),5,.9);
-  const v=r*Math.cos(a),d=r*Math.sin(a); /* v: sobe/desce; d: frente/trás */
+  /* os dois braços abertos na altura dos ombros, girando a partir do ombro; 10 voltas pra frente (1s cada) e 10 pra trás, círculo crescendo aos poucos */
+  const x=t%20,fwd=x<10,u=(x%10)/10,n=u*10;
+  const a=sp('a',2*PI*(fwd?n:10-n),10,.8),r=sp('r',lerp(6,18,u),5,.9);
+  const v=r*Math.cos(a),d=r*Math.sin(a),k=d/r; /* v: sobe/desce; d: frente/trás (k de -1 a 1) */
   let arms='';
   for(const s of[-1,1]){
-    const S=[150+s*32,86],C=[150+s*104,86],H=[C[0]+s*d*.35,C[1]-v];
-    arms+=`<ellipse cx="${C[0]}" cy="${C[1]}" rx="${f(r*.35+1)}" ry="${f(r)}" fill="none" stroke="#5a6580" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`
-      +ln(S[0],S[1],H[0],H[1],ACC,11)+ci(H[0],H[1],6.5+d/r,HAND);
+    const S=[150+s*32,86],C=[150+s*104,86],H=[C[0]+s*d*.6,C[1]-v];
+    arms+=`<ellipse cx="${C[0]}" cy="${C[1]}" rx="${f(r*.6)}" ry="${f(r)}" fill="none" stroke="#5a6580" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`
+      +ln(S[0],S[1],H[0],H[1],ACC,11)+ci(H[0],H[1],6.5+3*k,HAND);
   }
-  const ri=r*.9,inset=box(8,166,'de lado',
-    ln(38,44,37,76,TORSO,12)+ci(40,30,8,BODY)+ci(49,31,2.2,BODY)
-    +`<circle cx="40" cy="48" r="${f(ri)}" fill="none" stroke="#5a6580" stroke-width="1.5" stroke-dasharray="2 4"/>`
-    +ci(40+ri*Math.sin(a),48-ri*Math.cos(a),4,ACC)+tx(76,56,fwd?'↻':'↺',ACC,20));
+  /* quadrinho de lado em leve perspectiva: braço de perto vem na nossa direção, o de longe vai pro outro lado; mão gira em volta da ponta do braço, na altura do ombro */
+  const ri=lerp(3,8,cl((r-6)/12)),rf=ri*.55;
+  const hn=[20+ri*Math.sin(a),50-ri*Math.cos(a)],hf=[58+rf*Math.sin(a),43-rf*Math.cos(a)];
+  const inset=box(8,166,'de lado',
+    ln(43,45,hf[0],hf[1],FAR,3.5)+ci(hf[0],hf[1],2.6,FAR)
+    +ln(40,46,39,76,TORSO,13)+ci(42,30,8,BODY)+ci(51,31,2.2,BODY)
+    +`<circle cx="20" cy="50" r="${f(ri)}" fill="none" stroke="#5a6580" stroke-width="1.5" stroke-dasharray="2 4"/>`
+    +ln(37,47,hn[0],hn[1],ACC,5)+ci(hn[0],hn[1],4.5,HAND)+tx(78,64,fwd?'↻':'↺',ACC,20));
   const svg=FLOOR+frontBody()+arms+inset;
-  return{svg,label:fwd?'Pra frente':'Pra trás',bar:u};
+  return{svg,label:(fwd?'Pra frente':'Pra trás')+' · '+Math.min(10,Math.floor(n)+1)+'/10',bar:u};
 }
 function pendulum(t){
   const a=2*PI*t/2.4,m=sp('amp',1,3,.9,0),S=[172,116],H=[172+24*m*Math.cos(a),190+6*m*Math.sin(a)];
@@ -326,19 +356,19 @@ const EX=[
   steps:['Círculos de braço: os dois braços ao mesmo tempo, abertos pro lado na altura dos ombros e esticados. Começa com círculos pequenos (tamanho de uma laranja) e aumenta aos poucos. 10 pra frente e 10 pra trás, sem forçar.','10 pendulares de cada lado, com o tronco inclinado e o braço solto.','10 apertos de escápula sem subir o ombro.'],
   tips:['Estalo sem dor é ok.','Não força o final do movimento.']},
  {id:'re',title:'Rotação externa',vol:[...STD,'os dois lados'],sets:3,view:'Visto de frente',anim:rotation(true),
-  steps:['Prende o elástico do lado oposto ao braço que trabalha, na altura do cotovelo.','Cotovelo a 90° colado no tronco, com uma toalha enrolada no meio.','Gira o antebraço pra fora (2s).','Volta devagar (2s). Depois troca de lado.'],
+  steps:['Prende o elástico do lado oposto ao braço que trabalha, na altura do umbigo (mais ou menos a do cotovelo).','Cotovelo a 90° colado no tronco, com uma toalha enrolada no meio.','Gira o antebraço pra fora (2s).','Volta devagar (2s). Depois troca de lado.'],
   tips:['Se a toalha cair, o cotovelo abriu.','Só o antebraço gira.','Ombro longe da orelha.'],
   video:'https://www.youtube.com/watch?v=_gEWleAgieA'},
  {id:'ri',title:'Rotação interna',vol:[...STD,'os dois lados'],sets:3,view:'Visto de frente',anim:rotation(false),
-  steps:['Prende o elástico do mesmo lado do braço que trabalha.','Cotovelo a 90° colado no tronco.','Puxa o antebraço em direção à barriga (2s).','Controla a volta (2s). Depois troca de lado.'],
+  steps:['Prende o elástico do mesmo lado do braço que trabalha, na altura do umbigo (mais ou menos a do cotovelo).','Cotovelo a 90° colado no tronco.','Puxa o antebraço em direção à barriga (2s).','Controla a volta (2s). Depois troca de lado.'],
   tips:['Cotovelo colado o tempo todo.','Volta lenta.','Se o tronco girar ou o ombro subir, alivia a tensão.'],
   video:'https://www.youtube.com/watch?v=2N6XWsV4pIU'},
  {id:'pa',title:'Band pull-apart',vol:STD,sets:3,view:'Visto de frente',anim:pullApart,
-  steps:['Segura o elástico à frente, na altura dos ombros, braços quase esticados.','Abre os braços até o elástico chegar no peito (2s).','Volta devagar (2s).'],
+  steps:['Segura o elástico com os braços esticados à frente, na altura do peito.','Abre até o elástico encostar no peito, juntando as escápulas. Ombros longe das orelhas.','Volta devagar. São 2s pra abrir e 2s pra voltar.'],
   tips:['Ombros baixos.','Sente atrás do ombro e entre as escápulas, não no pescoço.','Não solta o elástico na volta.'],
   video:'https://www.youtube.com/watch?v=oEeT6oTrE3U'},
  {id:'fp',title:'Face pull',vol:STD,sets:3,view:'Visto de lado',anim:facePull,
-  steps:['Prende o elástico na altura do rosto e dá um passo pra trás.','Puxa com os cotovelos altos, mãos indo pra perto das orelhas (2s).','Abre as mãos no final.','Volta devagar (2s).'],
+  steps:['Prende o elástico na altura dos olhos e dá um passo pra trás.','Puxa com os cotovelos altos, mãos indo pra perto das orelhas (2s).','No final, afasta uma mão da outra, como se fosse abrir o elástico, sem soltar. As mãos ficam ao lado das orelhas.','Volta devagar (2s).'],
   tips:['Cotovelos altos: se caírem, virou remada.','Tronco firme.','Sem jogar a cabeça pra frente.'],
   video:'https://www.youtube.com/watch?v=GjfwIHrfgSw'},
  {id:'ytw',title:'Y-T-W',vol:['2 séries','8 a 10 de cada letra','de bruços, sem peso'],sets:2,
@@ -346,7 +376,7 @@ const EX=[
    {name:'Y',view:'Visto de cima',anim:ytw('Y'),desc:'Braços em diagonal acima da cabeça, polegares pra cima.'},
    {name:'T',view:'Visto de cima',anim:ytw('T'),desc:'Braços abertos pro lado.'},
    {name:'W',view:'Visto de cima',anim:ytw('W'),desc:'Cotovelos dobrados, escápulas juntas.'}],
-  steps:['Deita de bruços com a testa numa toalha.','Levanta os braços poucos centímetros do chão (2s).','Desce devagar (2s).','Faz 8 a 10 em Y, depois em T, depois em W.'],
+  steps:['Deita de bruços com a testa numa toalha.','Levanta os braços poucos centímetros (2s), segura 2s lá em cima e desce devagar (2s).','Faz 8 a 10 em Y, depois em T, depois em W.'],
   tips:['O movimento vem das escápulas.','Não levanta o peito nem arqueia a lombar.','Pescoço relaxado.'],
   video:'https://www.youtube.com/watch?v=sOJndB-OznA'}
 ];
@@ -356,16 +386,16 @@ const GUIDE={
  aq:{start:'Em pé, relaxado, com espaço pros braços. Nos círculos, abre os dois braços pro lado na altura dos ombros, esticados. No pendular, apoia uma mão numa mesa ou cadeira e inclina o tronco pra frente.',
      err:'Fazer rápido e com força. Aqui é só pra soltar e esquentar.',
      feel:'O ombro soltando e esquentando, sem dor.'},
- re:{start:'Em pé, de lado pra âncora, que fica do lado oposto ao braço que trabalha. Elástico na altura do cotovelo. Cotovelo a 90° colado no tronco, com a toalha no meio, e a mão na frente da barriga.',
+ re:{start:'Em pé, de lado pra âncora, que fica do lado oposto ao braço que trabalha. Elástico na altura do umbigo (mais ou menos a do cotovelo). Cotovelo a 90° colado no tronco, com a toalha no meio, e a mão na frente da barriga.',
      err:'Abrir o cotovelo ou girar o tronco pra ajudar. Se a toalha cair, o cotovelo abriu.',
      feel:'Atrás do ombro, lá no fundo. Não no pescoço.'},
- ri:{start:'Em pé, de lado pra âncora, que fica do mesmo lado do braço que trabalha. Cotovelo a 90° colado no tronco, antebraço apontando pra frente ou um pouco pra fora.',
+ ri:{start:'Em pé, de lado pra âncora, que fica do mesmo lado do braço que trabalha. Elástico na altura do umbigo (mais ou menos a do cotovelo). Cotovelo a 90° colado no tronco, antebraço apontando pra frente ou um pouco pra fora.',
      err:'Girar o tronco ou subir o ombro pra conseguir puxar. Se acontecer, chega mais perto da âncora pra aliviar a tensão.',
      feel:'Na frente do ombro, lá no fundo, e um pouco no peito.'},
- pa:{start:'Em pé, elástico seguro com as duas mãos à frente, na altura dos ombros. Braços quase esticados, mãos na largura dos ombros, elástico já levemente tenso.',
+ pa:{start:'Em pé, elástico seguro com as duas mãos à frente, na altura do peito. Braços esticados, mãos na largura dos ombros, elástico já levemente tenso.',
      err:'Subir os ombros pra perto das orelhas ou deixar o elástico voltar de uma vez.',
      feel:'Atrás do ombro e entre as escápulas. Não no pescoço.'},
- fp:{start:'De frente pra âncora, que fica na altura do rosto. Segura o elástico com as duas mãos, braços esticados à frente, e dá um passo pra trás até ele ficar levemente tenso.',
+ fp:{start:'De frente pra âncora, que fica na altura dos olhos. Segura o elástico com as duas mãos, braços esticados à frente, e dá um passo pra trás até ele ficar levemente tenso.',
      err:'Deixar os cotovelos caírem (aí vira remada) ou jogar a cabeça pra frente.',
      feel:'Atrás do ombro e no alto das costas, entre as escápulas.'},
  ytw:{start:'De bruços, testa apoiada numa toalha, pernas esticadas e braços no chão já na posição da letra.',
@@ -423,6 +453,15 @@ function trained(btn){
   if(!$('#sheet').hidden)openSheet(sheetFin);
   justTrained=false;
   if(r)celebrate(r.left+r.width/2,r.top+r.height/2);
+}
+/* "Concluir": já marca o treino de hoje (se ainda não marcou) e comemora */
+function finish(){
+  const k=dk(new Date()),isNew=!log.includes(k);
+  if(isNew){log.push(k);try{localStorage.setItem(KEY+'-log',JSON.stringify(log));}catch(e){}if(navigator.vibrate)navigator.vibrate(80);}
+  justTrained=isNew;
+  render();openSheet(true);
+  justTrained=false;
+  if(isNew)celebrate(innerWidth/2,innerHeight*.45);
 }
 function setRest(s){
   if(restEnd)restEnd+=(s-cfg.rest)*1000;
@@ -482,7 +521,7 @@ function toggleExp(){
 function setVar(i){const y=scrollY;vi=i;render();scrollTo(0,y);}
 function go(d){
   const i=st.idx+d;
-  if(i>=EX.length){openSheet(true);return;}
+  if(i>=EX.length){finish();return;}
   if(i<0)return;
   st.idx=i;vi=0;save();render();scrollTo(0,0);
   const m=$('#main');m.style.setProperty('--dx',(d>0?22:-22)+'px');m.classList.remove('enter');void m.offsetWidth;m.classList.add('enter');
