@@ -1,11 +1,16 @@
 // Guarda os arquivos do app pra funcionar offline quando instalado a partir de um site (http/https).
-const CACHE = 'treino-ombro-v1';
+const CACHE = 'treino-ombro-v2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+// Apaga caches de versões antigas.
+self.addEventListener('activate', e => e.waitUntil(
+  caches.keys()
+    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    .then(() => self.clients.claim())
+));
 
 // Rede primeiro (pra pegar atualizações); sem rede, usa a cópia guardada.
 self.addEventListener('fetch', e => {

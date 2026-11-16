@@ -76,6 +76,19 @@ ul li:before{content:"";position:absolute;left:16px;top:20px;width:10px;height:1
 #rest button{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(251,191,36,.4);background:none}
 .video{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;min-height:54px;border-radius:14px;border:1px solid var(--line);text-decoration:none;color:#cfd6e4;font-weight:600}
 .video small{color:var(--mut);font-weight:400}
+.volline{margin:0 0 12px;color:var(--mut);font-size:14px}
+#exp{scroll-margin-top:84px}
+.expbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:60px;margin-top:22px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:18px}
+.expbtn i{font-style:normal;color:var(--acc);transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.expbtn.open{border-color:var(--acc)}
+.expbtn.open i{transform:rotate(180deg)}
+.panel{animation:up .45s cubic-bezier(.2,.9,.3,1)}
+.panel p{margin:0;color:#cfd6e4}
+.panel p.err{background:rgba(244,114,182,.12);color:#f9a8d4;border-radius:14px;padding:12px 14px}
+.panel p.feel{background:rgba(94,234,212,.1);color:var(--acc);border-radius:14px;padding:12px 14px}
+.yt{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.panel .video{margin-top:10px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
 nav div{max-width:508px;margin:0 auto;display:flex;gap:12px}
 nav button{flex:1;min-height:62px;border-radius:18px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:18px}
@@ -108,7 +121,7 @@ main.enter{animation:enter .45s cubic-bezier(.2,.9,.3,1)}
   <div class="badge" id="badge" aria-label="Dias seguidos"></div>
   <button class="ibtn" onclick="openSheet(false)" aria-label="Regras da ficha">i</button>
 </header>
-<main id="main"></main>
+<main id="main"><div id="top"></div><div id="exp"></div><div id="foot"></div></main>
 <nav><p class="safe">Dor, travamento ou perda de força? Pare e procure um ortopedista ou fisioterapeuta.</p><div>
   <button id="prev" onclick="go(-1)">‹ Anterior</button>
   <button id="next" class="next" onclick="go(1)">Próximo ›</button>
@@ -296,7 +309,7 @@ function scap(t){
 /* ============ conteúdo ============ */
 const STD=['2 a 3 séries','12 a 15 repetições','descanso 45 a 60s'];
 const EX=[
- {id:'aq',title:'Aquecimento',vol:['3 min','10 de cada movimento'],sets:0,
+ {id:'aq',title:'Aquecimento',vol:['3 min','10 de cada movimento'],sets:3,noRest:true,setsLabel:'Movimentos feitos',
   variants:[
    {name:'Círculos',view:'Visto de lado',anim:circles,desc:'Braços esticados, círculos grandes e soltos: 10 pra frente e 10 pra trás.'},
    {name:'Pendular',view:'Visto de lado',anim:pendulum,desc:'Tronco inclinado, uma mão apoiada, o outro braço solto balançando. 10 de cada lado.'},
@@ -328,6 +341,28 @@ const EX=[
   tips:['O movimento vem das escápulas.','Não levanta o peito nem arqueia a lombar.','Pescoço relaxado.'],
   video:'https://www.youtube.com/watch?v=sOJndB-OznA'}
 ];
+
+/* guia do painel "Explicação": posição inicial, erro mais comum, onde deve sentir */
+const GUIDE={
+ aq:{start:'Em pé, relaxado, com espaço pros braços. No pendular, apoia uma mão numa mesa ou cadeira e inclina o tronco pra frente.',
+     err:'Fazer rápido e com força. Aqui é só pra soltar e esquentar.',
+     feel:'O ombro soltando e esquentando, sem dor.'},
+ re:{start:'Em pé, de lado pra âncora, que fica do lado oposto ao braço que trabalha. Elástico na altura do cotovelo. Cotovelo a 90° colado no tronco, com a toalha no meio, e a mão na frente da barriga.',
+     err:'Abrir o cotovelo ou girar o tronco pra ajudar. Se a toalha cair, o cotovelo abriu.',
+     feel:'Atrás do ombro, lá no fundo. Não no pescoço.'},
+ ri:{start:'Em pé, de lado pra âncora, que fica do mesmo lado do braço que trabalha. Cotovelo a 90° colado no tronco, antebraço apontando pra frente ou um pouco pra fora.',
+     err:'Girar o tronco ou subir o ombro pra conseguir puxar. Se acontecer, chega mais perto da âncora pra aliviar a tensão.',
+     feel:'Na frente do ombro, lá no fundo, e um pouco no peito.'},
+ pa:{start:'Em pé, elástico seguro com as duas mãos à frente, na altura dos ombros. Braços quase esticados, mãos na largura dos ombros, elástico já levemente tenso.',
+     err:'Subir os ombros pra perto das orelhas ou deixar o elástico voltar de uma vez.',
+     feel:'Atrás do ombro e entre as escápulas. Não no pescoço.'},
+ fp:{start:'De frente pra âncora, que fica na altura do rosto. Segura o elástico com as duas mãos, braços esticados à frente, e dá um passo pra trás até ele ficar levemente tenso.',
+     err:'Deixar os cotovelos caírem (aí vira remada) ou jogar a cabeça pra frente.',
+     feel:'Atrás do ombro e no alto das costas, entre as escápulas.'},
+ ytw:{start:'De bruços, testa apoiada numa toalha, pernas esticadas e braços no chão já na posição da letra.',
+     err:'Levantar o peito ou arquear a lombar pra subir mais. São só poucos centímetros.',
+     feel:'Entre as escápulas e atrás do ombro, com o pescoço relaxado.'}
+};
 
 /* ============ app ============ */
 const $=s=>document.querySelector(s),KEY='treino-ombro-v1',today=new Date().toDateString();
@@ -394,23 +429,46 @@ function render(){
   $('#dots').innerHTML=EX.map((e,i)=>`<i class="${i<st.idx?'on':i===st.idx?'cur':''}"></i>`).join('');
   const n=st.done[ex.id]||0,sx=stats();
   $('#badge').textContent='🔥 '+sx.streak;
-  $('#main').innerHTML=
+  $('#top').innerHTML=
     `<h1>${st.idx?st.idx+'. ':''}${ex.title}</h1>
-     <div class="vol">${ex.vol.map((x,i)=>`<span class="${i<2?'hi':''}">${x}</span>`).join('')}</div>
+     <p class="volline">${ex.vol.join(' · ')}</p>
      <div class="anim"><svg id="svg" viewBox="0 0 300 260" role="img" aria-label="Animação do movimento"></svg>
        <div class="tempo"><div class="row"><span>${v.view}</span><b id="lab"></b></div><div class="bar"><i id="bar"></i></div></div></div>`
     +(ex.variants?`<div class="chips">${ex.variants.map((x,i)=>`<button class="${i===vi?'on':''}" onclick="setVar(${i})">${x.name}</button>`).join('')}</div><p class="desc">${v.desc}</p>`:'')
-    +(ex.sets?`<h2>Séries feitas</h2><div class="sets">${Array.from({length:ex.sets},(_,i)=>`<button class="${i<n?'done':''}${i+1===popSet?' pop':''}" onclick="setDone(${i+1})" aria-label="Série ${i+1}">${i<n?'✓':i+1}</button>`).join('')}</div>
-       <div id="rest" hidden><span id="restTxt"></span><button onclick="stopRest()">Pular</button></div>
-       <div class="restset"><span>Descanso</span>${[45,50,55,60].map(s=>`<button class="${s===cfg.rest?'on':''}" onclick="setRest(${s})">${s}s</button>`).join('')}</div>`:'')
-    +`<h2>Passo a passo</h2><ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
-     <h2>Dicas</h2><ul>${ex.tips.map(s=>`<li>${s}</li>`).join('')}</ul>`
-    +(ex.video?`<a class="video" href="${ex.video}" target="_blank" rel="noopener">▶ Ver vídeo <small>(abre o YouTube)</small></a>`:'')
-    +(st.idx===EX.length-1?trainCard():'');
+    +(ex.sets?`<h2>${ex.setsLabel||'Séries feitas'}</h2><div class="sets">${Array.from({length:ex.sets},(_,i)=>`<button class="${i<n?'done':''}${i+1===popSet?' pop':''}" onclick="setDone(${i+1})" aria-label="Série ${i+1}">${i<n?'✓':i+1}</button>`).join('')}</div>
+       <div id="rest" hidden><span id="restTxt"></span><button onclick="stopRest()">Pular</button></div>`
+       +(ex.noRest?'':`<div class="restset"><span>Descanso</span>${[45,50,55,60].map(s=>`<button class="${s===cfg.rest?'on':''}" onclick="setRest(${s})">${s}s</button>`).join('')}</div>`):'');
+  $('#foot').innerHTML=st.idx===EX.length-1?trainCard():'';
+  if(expFor!==ex.id)renderExp();
   $('#prev').disabled=st.idx===0;
   $('#next').textContent=st.idx===EX.length-1?'Concluir ✓':'Próximo ›';
   popSet=0;
   tick();
+}
+/* painel "Explicação": fica fora do #top pra não recarregar o vídeo quando marca série */
+let expOpen=false,expFor=null;
+function renderExp(){
+  const ex=EX[st.idx],g=GUIDE[ex.id];
+  if(expFor!==ex.id)expOpen=false;
+  expFor=ex.id;
+  let h=`<button class="expbtn${expOpen?' open':''}" onclick="toggleExp()" aria-expanded="${expOpen}">Explicação <i>▾</i></button>`;
+  if(expOpen){
+    const id=ex.video?ex.video.split('v=')[1]:'';
+    h+=`<div class="panel">
+      <h2>Posição inicial</h2><p>${g.start}</p>
+      <h2>Execução passo a passo</h2><ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      <h2>Erro mais comum</h2><p class="err">${g.err}</p>
+      <h2>Onde deve sentir</h2><p class="feel">${g.feel}</p>
+      <h2>Dicas</h2><ul>${ex.tips.map(s=>`<li>${s}</li>`).join('')}</ul>`
+      +(id?`<h2>Vídeo</h2><div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1" title="Vídeo: ${ex.title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+        <a class="video" href="${ex.video}" target="_blank" rel="noopener">▶ Abrir no YouTube <small>(se o vídeo não carregar)</small></a>`:'')
+      +'</div>';
+  }
+  $('#exp').innerHTML=h;
+}
+function toggleExp(){
+  expOpen=!expOpen;renderExp();
+  if(expOpen)$('#exp').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function setVar(i){const y=scrollY;vi=i;render();scrollTo(0,y);}
 function go(d){
@@ -424,7 +482,8 @@ function setDone(i){
   const ex=EX[st.idx],cur=st.done[ex.id]||0,n=cur===i?i-1:i,y=scrollY;
   st.done[ex.id]=n;save();
   if(n>cur)popSet=n;
-  if(n>cur&&n<ex.sets)startRest();else stopRest();
+  if(ex.noRest&&ex.variants&&n>cur)vi=Math.min(n,ex.variants.length-1); /* aquecimento: já mostra o próximo movimento */
+  if(n>cur&&n<ex.sets&&!ex.noRest)startRest();else stopRest();
   render();scrollTo(0,y);
 }
 function startRest(){restEnd=Date.now()+cfg.rest*1000;clearInterval(restInt);restInt=setInterval(tick,250);}
@@ -463,6 +522,8 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1);});
+if(!(st.idx>=0&&st.idx<EX.length))st.idx=0;
+if(EX[st.idx].noRest)vi=Math.min(st.done[EX[st.idx].id]||0,EX[st.idx].variants.length-1); /* retoma o aquecimento no movimento onde parou */
 render();requestAnimationFrame(frame);
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
