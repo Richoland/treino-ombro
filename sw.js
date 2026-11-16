@@ -1,5 +1,5 @@
 // Guarda os arquivos do app pra funcionar offline quando instalado a partir de um site (http/https).
-const CACHE = 'treino-ombro-v3';
+const CACHE = 'treino-ombro-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
