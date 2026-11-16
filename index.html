@@ -275,13 +275,22 @@ function ytw(letter){
 
 /* aquecimento */
 function circles(t){
-  const x=t%12,fwd=x<6,n=(x%6)/2,S=[150,88];
-  const a=sp('a',PI+2*PI*(fwd?n:3-n),10,.8),a2=sp('a2',a,14,.8);
-  const arm=(ang,col,w)=>ln(S[0],S[1],S[0]+72*Math.sin(ang),S[1]-72*Math.cos(ang),col,w);
-  const svg=FLOOR+`<circle cx="150" cy="88" r="72" fill="none" stroke="#3a4359" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/>`
-    +tx(250,60,fwd?'↻':'↺',ACC,30)+arm(a2,FAR,10)+sideBody(150,false)+arm(a,ACC,11)
-    +ci(S[0]+72*Math.sin(a),S[1]-72*Math.cos(a),7,HAND);
-  return{svg,label:fwd?'Pra frente':'Pra trás',bar:n%1};
+  /* os dois braços abertos na altura dos ombros; círculos pequenos que crescem aos poucos, 6s pra frente e 6s pra trás */
+  const x=t%12,fwd=x<6,u=(x%6)/6,n=u*5;
+  const a=sp('a',2*PI*(fwd?n:5-n),10,.8),r=sp('r',lerp(5,17,u),5,.9);
+  const v=r*Math.cos(a),d=r*Math.sin(a); /* v: sobe/desce; d: frente/trás */
+  let arms='';
+  for(const s of[-1,1]){
+    const S=[150+s*32,86],C=[150+s*104,86],H=[C[0]+s*d*.35,C[1]-v];
+    arms+=`<ellipse cx="${C[0]}" cy="${C[1]}" rx="${f(r*.35+1)}" ry="${f(r)}" fill="none" stroke="#5a6580" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`
+      +ln(S[0],S[1],H[0],H[1],ACC,11)+ci(H[0],H[1],6.5+d/r,HAND);
+  }
+  const ri=r*.9,inset=box(8,166,'de lado',
+    ln(38,44,37,76,TORSO,12)+ci(40,30,8,BODY)+ci(49,31,2.2,BODY)
+    +`<circle cx="40" cy="48" r="${f(ri)}" fill="none" stroke="#5a6580" stroke-width="1.5" stroke-dasharray="2 4"/>`
+    +ci(40+ri*Math.sin(a),48-ri*Math.cos(a),4,ACC)+tx(76,56,fwd?'↻':'↺',ACC,20));
+  const svg=FLOOR+frontBody()+arms+inset;
+  return{svg,label:fwd?'Pra frente':'Pra trás',bar:u};
 }
 function pendulum(t){
   const a=2*PI*t/2.4,m=sp('amp',1,3,.9,0),S=[172,116],H=[172+24*m*Math.cos(a),190+6*m*Math.sin(a)];
@@ -311,10 +320,10 @@ const STD=['2 a 3 séries','12 a 15 repetições','descanso 45 a 60s'];
 const EX=[
  {id:'aq',title:'Aquecimento',vol:['3 min','10 de cada movimento'],sets:3,noRest:true,setsLabel:'Movimentos feitos',
   variants:[
-   {name:'Círculos',view:'Visto de lado',anim:circles,desc:'Braços esticados, círculos grandes e soltos: 10 pra frente e 10 pra trás.'},
+   {name:'Círculos',view:'Visto de frente',anim:circles,desc:'Os DOIS braços ao mesmo tempo, abertos pro lado na altura dos ombros e esticados. Círculos pequenos (tamanho de uma laranja), aumentando aos poucos: 10 pra frente e 10 pra trás, sem forçar.'},
    {name:'Pendular',view:'Visto de lado',anim:pendulum,desc:'Tronco inclinado, uma mão apoiada, o outro braço solto balançando. 10 de cada lado.'},
    {name:'Escápulas',view:'Visto de costas',anim:scap,desc:'Aperta uma escápula contra a outra sem subir o ombro. 10 vezes.'}],
-  steps:['10 círculos de braço pra frente e 10 pra trás.','10 pendulares de cada lado, com o tronco inclinado e o braço solto.','10 apertos de escápula sem subir o ombro.'],
+  steps:['Círculos de braço: os dois braços ao mesmo tempo, abertos pro lado na altura dos ombros e esticados. Começa com círculos pequenos (tamanho de uma laranja) e aumenta aos poucos. 10 pra frente e 10 pra trás, sem forçar.','10 pendulares de cada lado, com o tronco inclinado e o braço solto.','10 apertos de escápula sem subir o ombro.'],
   tips:['Estalo sem dor é ok.','Não força o final do movimento.']},
  {id:'re',title:'Rotação externa',vol:[...STD,'os dois lados'],sets:3,view:'Visto de frente',anim:rotation(true),
   steps:['Prende o elástico do lado oposto ao braço que trabalha, na altura do cotovelo.','Cotovelo a 90° colado no tronco, com uma toalha enrolada no meio.','Gira o antebraço pra fora (2s).','Volta devagar (2s). Depois troca de lado.'],
@@ -344,7 +353,7 @@ const EX=[
 
 /* guia do painel "Explicação": posição inicial, erro mais comum, onde deve sentir */
 const GUIDE={
- aq:{start:'Em pé, relaxado, com espaço pros braços. No pendular, apoia uma mão numa mesa ou cadeira e inclina o tronco pra frente.',
+ aq:{start:'Em pé, relaxado, com espaço pros braços. Nos círculos, abre os dois braços pro lado na altura dos ombros, esticados. No pendular, apoia uma mão numa mesa ou cadeira e inclina o tronco pra frente.',
      err:'Fazer rápido e com força. Aqui é só pra soltar e esquentar.',
      feel:'O ombro soltando e esquentando, sem dor.'},
  re:{start:'Em pé, de lado pra âncora, que fica do lado oposto ao braço que trabalha. Elástico na altura do cotovelo. Cotovelo a 90° colado no tronco, com a toalha no meio, e a mão na frente da barriga.',
