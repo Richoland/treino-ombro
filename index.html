@@ -121,6 +121,13 @@ h2{margin:16px 0 8px}
 .safe{margin-bottom:8px}
 nav{padding-top:8px}
 nav button{min-height:56px}
+/* seletor de plano no topo, pequeno e discreto */
+.plan{display:flex;align-items:center;gap:6px}
+.plan button{min-height:32px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:none;font-size:12.5px;font-weight:600;color:var(--mut);white-space:nowrap}
+.plan button.on{background:rgba(94,234,212,.14);border-color:transparent;color:var(--acc)}
+header .plan small{display:inline;margin-left:auto;letter-spacing:0;text-transform:none;white-space:nowrap}
+.dots{margin-top:7px}
+.restfix{margin:10px 0 0;font-size:14px;color:var(--band)}
 .cf{position:fixed;z-index:20;width:10px;height:10px;border-radius:3px;pointer-events:none}
 #sheet{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
 #sheet[hidden]{display:none}
@@ -135,7 +142,7 @@ nav button{min-height:56px}
 </head>
 <body>
 <header>
-  <div class="t"><small id="step"></small><div class="dots" id="dots"></div></div>
+  <div class="t"><div class="plan" id="plan"></div><div class="dots" id="dots"></div></div>
   <div class="badge" id="badge" aria-label="Dias seguidos"></div>
   <button class="ibtn" onclick="openSheet(false)" aria-label="Regras da ficha">i</button>
 </header>
@@ -408,6 +415,27 @@ const $=s=>document.querySelector(s),KEY='treino-ombro-v1',today=new Date().toDa
 let st={date:today,idx:0,done:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.date===today)st=s;}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+/* planos: Completo (todos) ou Curto, alternando A e B conforme o último curto feito */
+const PLANS={full:['aq','re','ri','pa','fp','ytw'],A:['aq','re','fp','ytw'],B:['aq','ri','pa','ytw']};
+let pc={mode:'full',last:null};
+try{const p=JSON.parse(localStorage.getItem(KEY+'-plan'));if(p&&(p.mode==='full'||p.mode==='short'))pc=p;}catch(e){}
+const savePc=()=>{try{localStorage.setItem(KEY+'-plan',JSON.stringify(pc));}catch(e){}};
+const nextShort=()=>pc.last==='A'?'B':'A';
+if(!PLANS[st.plan])st.plan=pc.mode==='short'?nextShort():'full';
+const isShort=()=>st.plan!=='full';
+const seq=()=>PLANS[st.plan].map(id=>EX.find(e=>e.id===id));
+const cur=()=>seq()[st.idx];
+const setsOf=ex=>ex.noRest||!isShort()?ex.sets:2;
+const isRot=ex=>ex.id==='re'||ex.id==='ri';
+const tipsOf=ex=>isShort()&&isRot(ex)?[...ex.tips,'Enquanto um braço descansa, faz o outro.']:ex.tips;
+const volOf=ex=>isShort()?ex.vol.map(x=>x==='2 a 3 séries'?'2 séries':x==='descanso 45 a 60s'?'descanso 30s':x):ex.vol;
+function markShortDone(){if(isShort()){pc.last=st.plan;savePc();}}
+function setPlan(m){
+  pc.mode=m;savePc();
+  if((st.plan==='full')===(m==='full'))return;
+  st={date:today,plan:m==='full'?'full':nextShort(),idx:0,done:{}};
+  vi=0;expFor=null;save();stopRest();render();scrollTo(0,0);
+}
 let vi=0,anim=null,t0=0,lastLabel='',restEnd=0,restInt=null,sheetFin=false;
 let cfg={rest:45},log=[],popSet=0,justTrained=false,lastNow=0;
 function celebrate(x,y){
@@ -447,6 +475,7 @@ function trainCard(){
 function trained(btn){
   const k=dk(new Date()),r=btn&&btn.getBoundingClientRect();
   if(!log.includes(k)){log.push(k);try{localStorage.setItem(KEY+'-log',JSON.stringify(log));}catch(e){}}
+  markShortDone();
   if(navigator.vibrate)navigator.vibrate(80);
   justTrained=true;
   const y=scrollY;render();scrollTo(0,y);
@@ -458,6 +487,7 @@ function trained(btn){
 function finish(){
   const k=dk(new Date()),isNew=!log.includes(k);
   if(isNew){log.push(k);try{localStorage.setItem(KEY+'-log',JSON.stringify(log));}catch(e){}if(navigator.vibrate)navigator.vibrate(80);}
+  markShortDone();
   justTrained=isNew;
   render();openSheet(true);
   justTrained=false;
@@ -470,33 +500,34 @@ function setRest(s){
 }
 
 function render(){
-  const ex=EX[st.idx],v=ex.variants?ex.variants[vi]:ex;
+  const S=seq(),ex=S[st.idx],v=ex.variants?ex.variants[vi]:ex,sets=setsOf(ex),last=st.idx===S.length-1;
   if(anim!==v.anim){anim=v.anim;t0=performance.now();SPR={};}
   lastLabel='';
-  $('#step').textContent=(st.idx?'Exercício '+st.idx+' de '+(EX.length-1):'Antes de começar');
-  $('#dots').innerHTML=EX.map((e,i)=>`<i class="${i<st.idx?'on':i===st.idx?'cur':''}"></i>`).join('');
+  $('#plan').innerHTML=`<button class="${isShort()?'':'on'}" onclick="setPlan('full')" aria-pressed="${!isShort()}">Completo</button><button class="${isShort()?'on':''}" onclick="setPlan('short')" aria-pressed="${isShort()}">Curto ~15min</button><small>${st.idx?st.idx+' de '+(S.length-1):''}</small>`;
+  $('#dots').innerHTML=S.map((e,i)=>`<i class="${i<st.idx?'on':i===st.idx?'cur':''}"></i>`).join('');
   const n=st.done[ex.id]||0,sx=stats();
   $('#badge').textContent='🔥 '+sx.streak;
   $('#top').innerHTML=
     `<h1>${st.idx?st.idx+'. ':''}${ex.title}</h1>
-     <p class="volline">${ex.vol.join(' · ')}</p>
+     <p class="volline">${(isShort()?['Curto '+st.plan]:[]).concat(volOf(ex)).join(' · ')}</p>
      <div class="anim"><svg id="svg" viewBox="0 0 300 260" role="img" aria-label="Animação do movimento"></svg>
        <div class="tempo"><div class="row"><span>${v.view}</span><b id="lab"></b></div><div class="bar"><i id="bar"></i></div></div></div>`
     +(ex.variants?`<div class="chips">${ex.variants.map((x,i)=>`<button class="${i===vi?'on':''}" onclick="setVar(${i})">${x.name}</button>`).join('')}</div><p class="desc">${v.desc}</p>`:'')
-    +(ex.sets?`<h2>${ex.setsLabel||'Séries feitas'}</h2><div class="sets">${Array.from({length:ex.sets},(_,i)=>`<button class="${i<n?'done':''}${i+1===popSet?' pop':''}" onclick="setDone(${i+1})" aria-label="Série ${i+1}">${i<n?'✓':i+1}</button>`).join('')}</div>
+    +(sets?`<h2>${ex.setsLabel||'Séries feitas'}</h2><div class="sets">${Array.from({length:sets},(_,i)=>`<button class="${i<n?'done':''}${i+1===popSet?' pop':''}" onclick="setDone(${i+1})" aria-label="Série ${i+1}">${i<n?'✓':i+1}</button>`).join('')}</div>
        <div id="rest" hidden><span id="restTxt"></span><button onclick="stopRest()">Pular</button></div>`
-       +(ex.noRest?'':`<div class="restset"><span>Descanso</span>${[45,50,55,60].map(s=>`<button class="${s===cfg.rest?'on':''}" onclick="setRest(${s})">${s}s</button>`).join('')}</div>`):'');
-  $('#foot').innerHTML=st.idx===EX.length-1?trainCard():'';
+       +(ex.noRest?'':isShort()?`<p class="restfix">Descanso 30s.${isRot(ex)?' Enquanto um braço descansa, faz o outro.':''}</p>`
+         :`<div class="restset"><span>Descanso</span>${[45,50,55,60].map(s=>`<button class="${s===cfg.rest?'on':''}" onclick="setRest(${s})">${s}s</button>`).join('')}</div>`):'');
+  $('#foot').innerHTML=last?trainCard():'';
   if(expFor!==ex.id)renderExp();
   $('#prev').disabled=st.idx===0;
-  $('#next').textContent=st.idx===EX.length-1?'Concluir ✓':'Próximo ›';
+  $('#next').textContent=last?'Concluir ✓':'Próximo ›';
   popSet=0;
   tick();
 }
 /* painel "Explicação": fica fora do #top pra não recarregar o vídeo quando marca série */
 let expOpen=false,expFor=null;
 function renderExp(){
-  const ex=EX[st.idx],g=GUIDE[ex.id];
+  const ex=cur(),g=GUIDE[ex.id];
   if(expFor!==ex.id)expOpen=false;
   expFor=ex.id;
   let h=`<button class="expbtn${expOpen?' open':''}" onclick="toggleExp()" aria-expanded="${expOpen}">Explicação <i>▾</i></button>`;
@@ -507,7 +538,7 @@ function renderExp(){
       <h2>Execução passo a passo</h2><ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
       <h2>Erro mais comum</h2><p class="err">${g.err}</p>
       <h2>Onde deve sentir</h2><p class="feel">${g.feel}</p>
-      <h2>Dicas</h2><ul>${ex.tips.map(s=>`<li>${s}</li>`).join('')}</ul>`
+      <h2>Dicas</h2><ul>${tipsOf(ex).map(s=>`<li>${s}</li>`).join('')}</ul>`
       +(id?`<h2>Vídeo</h2><div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1" title="Vídeo: ${ex.title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
         <a class="video" href="${ex.video}" target="_blank" rel="noopener">▶ Abrir no YouTube <small>(se o vídeo não carregar)</small></a>`:'')
       +'</div>';
@@ -521,20 +552,20 @@ function toggleExp(){
 function setVar(i){const y=scrollY;vi=i;render();scrollTo(0,y);}
 function go(d){
   const i=st.idx+d;
-  if(i>=EX.length){finish();return;}
+  if(i>=seq().length){finish();return;}
   if(i<0)return;
   st.idx=i;vi=0;save();render();scrollTo(0,0);
   const m=$('#main');m.style.setProperty('--dx',(d>0?22:-22)+'px');m.classList.remove('enter');void m.offsetWidth;m.classList.add('enter');
 }
 function setDone(i){
-  const ex=EX[st.idx],cur=st.done[ex.id]||0,n=cur===i?i-1:i,y=scrollY;
+  const ex=cur(),was=st.done[ex.id]||0,n=was===i?i-1:i,y=scrollY;
   st.done[ex.id]=n;save();
-  if(n>cur)popSet=n;
-  if(ex.noRest&&ex.variants&&n>cur)vi=Math.min(n,ex.variants.length-1); /* aquecimento: já mostra o próximo movimento */
-  if(n>cur&&n<ex.sets&&!ex.noRest)startRest();else stopRest();
+  if(n>was)popSet=n;
+  if(ex.noRest&&ex.variants&&n>was)vi=Math.min(n,ex.variants.length-1); /* aquecimento: já mostra o próximo movimento */
+  if(n>was&&n<setsOf(ex)&&!ex.noRest)startRest();else stopRest();
   render();scrollTo(0,y);
 }
-function startRest(){restEnd=Date.now()+cfg.rest*1000;clearInterval(restInt);restInt=setInterval(tick,250);}
+function startRest(){restEnd=Date.now()+(isShort()?30:cfg.rest)*1000;clearInterval(restInt);restInt=setInterval(tick,250);}
 function stopRest(){restEnd=0;clearInterval(restInt);restInt=null;const el=$('#rest');if(el)el.hidden=true;}
 function tick(){
   const el=$('#rest');if(!restEnd)return;
@@ -546,9 +577,11 @@ function openSheet(fin){
   sheetFin=fin;
   $('#sheetIn').innerHTML=
     `<h3>${fin?'Treino concluído 💪':'Ficha 1: ombro com elástico'}</h3>
-     <p>${fin?'Boa, Ricardo. Amanhã tem de novo.':'Todo dia, 15 a 20 min, com elástico leve.'}</p>
+     <p>${fin?'Boa, Ricardo. Amanhã tem de novo.'+(isShort()?' Próximo curto: '+nextShort()+'.':''):'Todo dia, com elástico leve. Dá pra alternar dia completo e dia curto.'}</p>
      ${trainCard()}
-     <h2>Regra geral</h2><p>2 a 3 séries de 12 a 15, devagar: 2s na ida, 2s na volta. Descanso de 45 a 60s. Nos unilaterais, faz os dois lados.</p>
+     <h2>Planos</h2><p><b>Completo (~35 min):</b> aquecimento + os 5 exercícios, 3 séries, descanso 45 a 60s.</p>
+     <p><b>Curto (~15 min):</b> aquecimento + 3 exercícios, 2 séries, descanso 30s. Alterna o A (rotação externa, face pull, Y-T-W) e o B (rotação interna, pull-apart, Y-T-W).</p>
+     <h2>Regra geral</h2><p>12 a 15 repetições, devagar: 2s na ida, 2s na volta. Nos unilaterais, faz os dois lados.</p>
      <p>Estalo sem dor é ok. Não força o final do movimento.</p>
      <h2>Progressão</h2><p>Quando 3 × 15 ficar fácil com a forma limpa, passa pra um elástico um pouco mais firme.</p>
      <h2>Segurança</h2><p class="warn">Se aparecer dor, travamento ou perda de força: para e procura um ortopedista ou fisioterapeuta.</p>
@@ -556,7 +589,7 @@ function openSheet(fin){
   $('#sheet').hidden=false;
 }
 function closeSheet(){$('#sheet').hidden=true;}
-function restart(){st={date:today,idx:0,done:{}};vi=0;save();stopRest();closeSheet();render();scrollTo(0,0);}
+function restart(){st={date:today,plan:st.plan,idx:0,done:{}};vi=0;save();stopRest();closeSheet();render();scrollTo(0,0);}
 
 function frame(now){
   const svg=$('#svg');
@@ -570,8 +603,8 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1);});
-if(!(st.idx>=0&&st.idx<EX.length))st.idx=0;
-if(EX[st.idx].noRest)vi=Math.min(st.done[EX[st.idx].id]||0,EX[st.idx].variants.length-1); /* retoma o aquecimento no movimento onde parou */
+if(!(st.idx>=0&&st.idx<seq().length))st.idx=0;
+if(cur().noRest)vi=Math.min(st.done[cur().id]||0,cur().variants.length-1); /* retoma o aquecimento no movimento onde parou */
 render();requestAnimationFrame(frame);
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
